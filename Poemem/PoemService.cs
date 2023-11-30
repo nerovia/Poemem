@@ -23,7 +23,7 @@ namespace Poemem
 		public static async Task<Poem> FetchFromLocal(string path)
 		{
 			if (!File.Exists(path))
-				throw new ArgumentException();
+				throw new HandleException("Could not find file.");
 
 			switch (Path.GetExtension(path))
 			{

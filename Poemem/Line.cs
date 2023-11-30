@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using Spectre.Console.Rendering;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Poemem
@@ -27,9 +29,9 @@ namespace Poemem
 
 		public int Offset { get; private set; }
 
-		public Line Write(object obj) => Write(obj.ToString() ?? "");
+		public Line Write(object obj, AnsiiStyle? style = null) => Write(obj.ToString() ?? "", style);
 
-		public Line Write(string s)
+		public Line Write(string s, AnsiiStyle? style = null)
 		{
 			EnsureCurrent();
 			if (s.Length == 0)
@@ -38,11 +40,19 @@ namespace Poemem
 			if (s.Any(char.IsControl))
 				throw new ArgumentException();
 
+			if (style != null)
+				Console.Write(style.ToString());
+
 			var left = Console.CursorLeft;
 
 			Offset += s.Length;
 			Length = int.Max(Length, Offset);
+
 			Console.Write(s);
+
+			if (style != null)
+				Console.Write(AnsiiStyle.Clear);
+
 			Log($"written '{s}' [{s.Length}]");
 
 			// some terminals don't move the cursor to the next line...
@@ -109,6 +119,7 @@ namespace Poemem
 			return Current;
 		}
 
+		[Obsolete]
 		public Line Style(params int[] args)
 		{
 			Console.Write($"\x1b[{string.Join(';', args)}m");
@@ -210,19 +221,20 @@ namespace Poemem
 			Length = length;
 		}
 
-		public Line Move()
+		public Line Seek()
 		{
 			if (Line.Offset != Offset)
 				Line.Move(Offset - Line.Offset);
 			return Line;
 		}
 
-		public Span Write(string s)
+		public Span Write(string s, AnsiiStyle? style = null)
 		{
-			Move().Write(s.Length < Length ? s : s.Substring(0, Length));
+			Seek().Write(s.Length < Length ? s : s.Substring(0, Length), style);
 			return this;
 		}
 
+		[Obsolete]
 		public Span Style(params int[] args)
 		{
 			Line.Style(args);
@@ -231,7 +243,7 @@ namespace Poemem
 
 		public string? Read(ReadOptions options)
 		{
-			return Move().Read(options with { MaxLength = int.Min(Length, options.MaxLength) });
+			return Seek().Read(options with { MaxLength = int.Min(Length, options.MaxLength) });
 		}
 	}
 
@@ -245,56 +257,49 @@ namespace Poemem
 		public bool AllowSpace { get; init; } = false;
 	}
 
-	[Obsolete]
-	class StringStyle
+	public struct AnsiiStyle
 	{
-		SortedSet<int> Args = new();
-
-		public const char EscapeChar = '\x1b';
-
-		public StringStyle Mode(AnsiiMode mode)
+		AnsiiStyle(string code)
 		{
-			Args.Add((int)mode);
-			return this;
+			AnsiiCode = code;
 		}
 
-		public StringStyle Bold() => Mode(AnsiiMode.Bold);
+		public const string AnsiiEscape = "\x1b[";
+		public const string Terminator = "m";
+		public const string Delimiter = ";";
 
-		public StringStyle Italic() => Mode(AnsiiMode.Italic);
+		public readonly string AnsiiCode;
 
-		public StringStyle Underline() => Mode(AnsiiMode.Underline);
-
-		public StringStyle Foreground(AnsiiColor color)
+		public override string ToString()
 		{
-			Args.Add((int)color + 30);
-			return this;
+			return AnsiiEscape + AnsiiCode + Terminator;
 		}
 
-		public StringStyle Background(AnsiiColor color)
-		{
-			Args.Add((int)color + 40);
-			return this;
-		}
+		public static readonly AnsiiStyle Clear = new AnsiiStyle("0");
+		public static readonly AnsiiStyle Bold = new AnsiiStyle("1");
+		public static readonly AnsiiStyle Faint = new AnsiiStyle("2");
+		public static readonly AnsiiStyle Italic = new AnsiiStyle("3");
+		public static readonly AnsiiStyle Underline = new AnsiiStyle("4");
+		public static readonly AnsiiStyle Blink = new AnsiiStyle("5");
+		public static readonly AnsiiStyle Inverse = new AnsiiStyle("6");
+		public static readonly AnsiiStyle Invisible = new AnsiiStyle("7");
+		public static readonly AnsiiStyle Strikethrough = new AnsiiStyle("8");
+		public static AnsiiStyle Background(AnsiiColor color) => new AnsiiStyle((30 + (int)color).ToString());
+		public static AnsiiStyle Background(Color color) => throw new NotImplementedException();
+		public static AnsiiStyle Foreground(AnsiiColor color) => new AnsiiStyle((30 + (int)color).ToString());
+		public static AnsiiStyle Foreground(Color color) => throw new NotImplementedException();
 
-		public string Apply(string s)
+		public static AnsiiStyle operator+(AnsiiStyle left, AnsiiStyle right)
 		{
-			return $"{EscapeChar}[{string.Join(';', Args)}m{s}{EscapeChar}[0m";
-
-			return EscapeChar + '[' + string.Join(';', Args) + 'm' + s + EscapeChar + "[0m";
+			return new AnsiiStyle(left.AnsiiCode + Delimiter + right.AnsiiCode);
 		}
 	}
 
-	public enum AnsiiMode
+	public struct Color
 	{
-		None,
-		Bold = 1,
-		Faint = 2,
-		Italic = 3,
-		Underline = 4,
-		Blink = 5,
-		Inverse = 6,
-		Invisible = 7,
-		Strikethrough = 8,
+		public readonly byte Red;
+		public readonly byte Green;
+		public readonly byte Blue;
 	}
 
 	public enum AnsiiColor

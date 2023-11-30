@@ -1,6 +1,10 @@
 ﻿using Poemem;
 using Poemem.Quiz;
+using Poemem.Versus;
 using System.CommandLine;
+using System.CommandLine.Builder;
+using System.CommandLine.Invocation;
+using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using System.Diagnostics;
 
@@ -43,9 +47,14 @@ exitCommand.AddAlias("quit");
 exitCommand.SetHandler(() => Environment.Exit(0));
 exitCommand.IsHidden = true;
 
-var rootCommand = new RootCommand() { quizCommand, fetchCommand, exitCommand };
+var rootCommand = new RootCommand() { quizCommand, fetchCommand, exitCommand, new VersusCommand() };
+var parser = new CommandLineBuilder(rootCommand)
+	.UseDefaults() 
+	.UseExceptionHandler(OnException, 1)
+	.Build();
+
 rootCommand.SetHandler(HandleRoot);
-rootCommand.Invoke(args);
+parser.Invoke(args);
 
 async Task HandleRoot()
 {
@@ -56,7 +65,7 @@ async Task HandleRoot()
 		var input = Console.ReadLine();
 		if (input == null)
 			return;
-		await rootCommand.InvokeAsync(input);
+		await parser.InvokeAsync(input);
 	}
 }
 
@@ -70,7 +79,7 @@ async Task HandleQuiz(string query, Source source, Range range, Mode mode, Diffi
 	{
 		Mode.Blanks => new WordQuiz(),
 		Mode.Lines => new LineQuiz(),
-		_ => throw new ArgumentException()
+		_ => throw new ArgumentException("Unsupported mode")
 	};
 
 	var options = new QuizOptions(poem, range, difficulty)
@@ -113,7 +122,7 @@ async Task<Poem> FindPoem(string query, Source source)
 	{
 		Source.Local => await PoemService.FetchFromLocal(query),
 		Source.PoetryDB => await PoemService.FetchFromPoetryDB(query),
-		_ => throw new ArgumentException()
+		_ => throw new HandleException("Unsupported source")
 	};
 
 	cache.Add((query, source), poem);
@@ -121,22 +130,26 @@ async Task<Poem> FindPoem(string query, Source source)
 	return poem;
 }
 
+void OnException(Exception ex, InvocationContext context)
+{
+	if (ex is HandleException)
+		context.Console.Error.WriteLine(ex.Message);
+	else
+		context.Console.Error.WriteLine($"Unhandled Exception: {ex}");
+}
+
 void WriteTitle(IPoem poem)
 {
 	Line.Current
 		.NewLine()
-		.Style(33)
-		.Write(poem.Title)
-		.Style(0)
+		.Write(poem.Title, AnsiiStyle.Foreground(AnsiiColor.Yellow))
 		.NewLine(2);
 }
 
 void WriteResult(IQuizResult result)
 {
 	Line.Current
-		.Style(33)
-		.Write(result)
-		.Style(0)
+		.Write(result, AnsiiStyle.Foreground(AnsiiColor.Yellow))
 		.NewLine(2);
 }
 

@@ -44,11 +44,13 @@ namespace Poemem
 				if (string.Compare(answer, blank.Word, true) == 0)
 				{
 					++nbrCorrect;
-					blank.Span.Style(32).Write(answer).Style(0);
+					blank.Span.Write(answer, AnsiiStyle.Foreground(AnsiiColor.Green));
+					//blank.Span.Style(32).Write(answer).Style(0);
 				}
 				else
 				{
-					blank.Span.Style(31, 3).Write(blank.Word).Style(0);
+					blank.Span.Write(blank.Word, AnsiiStyle.Italic + AnsiiStyle.Foreground(AnsiiColor.Red));
+					//blank.Span.Style(31, 3).Write(blank.Word).Style(0);
 				}
 			}
 
