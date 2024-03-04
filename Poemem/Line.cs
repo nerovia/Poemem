@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Poemem
 {
@@ -291,7 +292,7 @@ namespace Poemem
 
 		public static AnsiiStyle operator+(AnsiiStyle left, AnsiiStyle right)
 		{
-			return new AnsiiStyle(left.AnsiiCode + Delimiter + right.AnsiiCode);
+			return new AnsiiStyle(string.Concat(left.AnsiiCode, Delimiter, right.AnsiiCode));
 		}
 	}
 
@@ -315,3 +316,37 @@ namespace Poemem
 		Default = 9,
 	}
 }
+
+
+//public Line Write(string s)
+//		{
+//	EnsureCurrent();
+//	if (s.Length == 0)
+//		return this;
+
+//	if (s.Any(it => char.IsControl(it) && it != '\x1b'))
+//		throw new ArgumentException();
+
+//	var excess = Regex.Matches(s, @"\x1b\[\d+?(;\d+)*m").Sum(it => it.Length);
+
+//	var left = Console.CursorLeft;
+
+//	Offset += s.Length - excess;
+//	Length = int.Max(Length, Offset);
+
+//	Console.Write(s);
+
+//	//if (style != null)
+//	//	Console.Write(AnsiiStyle.Clear);
+
+//	Log($"written '{s}' [{s.Length}]");
+
+//	// some terminals don't move the cursor to the next line...
+//	if (left == Console.CursorLeft)
+//	{
+//		Console.CursorLeft = 0;
+//		Console.CursorTop++;
+//	}
+
+//	return this;
+//}

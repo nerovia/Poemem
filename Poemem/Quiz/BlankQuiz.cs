@@ -1,21 +1,21 @@
 ﻿using System.Text.RegularExpressions;
+using Poemem.Common;
 
 namespace Poemem.Quiz
 {
-	class WordQuiz : IPoemQuiz
+    class BlankQuiz : IPoemQuiz
 	{
 		public IQuizResult? Execute(QuizOptions options)
 		{
 			var score = 0;
 			int total = 0;
-			var verses = options.Verses;
 
-			foreach (var verse in verses)
+			foreach (var verse in options.Poem.Verses)
 			{
 				foreach (var line in verse)
 				{
 					var s = options.Substitution(line);
-					var blanks = Line.Current.WriteBlanks(s, it => SelectWords(it, options.difficulty));
+					var blanks = Line.Current.WriteBlanks(s, it => SelectBlanks(it, options.Difficulty));
 					var results = Line.Current.QuizBlanks(blanks);
 					if (results is null)
 					{
@@ -32,14 +32,14 @@ namespace Poemem.Quiz
 			return new ScoreResult(score, total);
 		}
 
-		static IEnumerable<Match> SelectWords(string line, Difficulty difficulty)
+		static IEnumerable<Match> SelectBlanks(string line, Difficulty difficulty)
 		{
-			var matches = Regex.Matches(line, @"\p{L}+");
+			var words = Regex.Matches(line, @"\p{L}+");
 
 			if (difficulty == Difficulty.Extreme)
-				return matches.SkipAtRandom();
+				return words.SkipAtRandom();
 
-			return matches
+			return words
 				.Where(it => it.Value.Length > 3)
 				.SelectAtRandom(difficulty switch
 				{

@@ -77,8 +77,9 @@ async Task HandleQuiz(string query, Source source, Range range, Mode mode, Diffi
 
 	IPoemQuiz quiz = mode switch
 	{
-		Mode.Blanks => new WordQuiz(),
+		Mode.Blanks => new BlankQuiz(),
 		Mode.Lines => new LineQuiz(),
+		Mode.Initial => new InitialQuiz(),
 		_ => throw new ArgumentException("Unsupported mode")
 	};
 
@@ -157,6 +158,7 @@ enum Mode
 {
 	Blanks,
 	Lines,
+	Initial,
 }
 
 enum Difficulty

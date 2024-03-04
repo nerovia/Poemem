@@ -1,15 +1,16 @@
 ﻿using System.Text.RegularExpressions;
+using Poemem.Common;
 
 namespace Poemem.Quiz
 {
-	class LineQuiz : IPoemQuiz
+    class LineQuiz : IPoemQuiz
 	{
 		public IQuizResult? Execute(QuizOptions options)
 		{
 			var score = 0;
 			var total = 0;
 
-			foreach (var verse in options.Verses)
+			foreach (var verse in options.Poem.Verses)
 			{
 				for (int l = 0; l < verse.Length; l++)
 				{

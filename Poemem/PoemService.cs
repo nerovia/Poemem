@@ -1,10 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Poemem.Common;
 
 namespace Poemem
 {
-	internal static class PoemService
+    internal static class PoemService
 	{
 		public static async Task<Poem> FetchFromPoetryDB(string query)
 		{

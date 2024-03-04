@@ -2,11 +2,9 @@
 {
 	delegate string LineSubstitution(string s);
 
-    record QuizOptions(IPoem Poem, Range VerseRange, Difficulty difficulty)
+    record QuizOptions(IPoem Poem, Range VerseRange, Difficulty Difficulty)
     {
         public LineSubstitution Substitution { get; init; } = it => it;
-
-        public string[][] Verses { get => Poem.Verses[VerseRange]; }
     }
 
     interface IQuizResult

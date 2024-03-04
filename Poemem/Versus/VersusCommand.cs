@@ -34,7 +34,7 @@ namespace Poemem.Versus
 			//IPHostEntry host = Dns.GetHostEntry("localhost");
 			IPAddress ipAddress = IPAddress.Any;
 			IPEndPoint localEndPoint = new IPEndPoint(ipAddress, HostPort);
-
+			
 			var listener = new TcpListener(localEndPoint);
 
 			try
