@@ -39,8 +39,10 @@ namespace Poemem.Quiz
 			if (difficulty == Difficulty.Extreme)
 				return words.SkipAtRandom();
 
+			var max = words.Max(x => x.Length);
+
 			return words
-				.Where(it => it.Value.Length > 3)
+				.Where(it => it.Value.Length > 3 || max <= 3)
 				.SelectAtRandom(difficulty switch
 				{
 					Difficulty.Easy => 1,
