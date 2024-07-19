@@ -22,7 +22,7 @@
         public override string ToString()
         {
             var rate = (double)Score / Total;
-            return $"You got {Score}/{Total} correct, thats {rate * 100:N0}%";
+            return $"You got {Score}/{Total} correct, that's {rate * 100:N0}%";
         }
     }
 

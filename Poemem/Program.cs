@@ -143,8 +143,11 @@ void WriteTitle(IPoem poem)
 {
 	Line.Current
 		.NewLine()
-		.Write(poem.Title, AnsiiStyle.Foreground(AnsiiColor.Yellow))
-		.NewLine(2);
+		.Write($"{poem.Title}", AnsiiStyle.Foreground(AnsiiColor.Yellow));
+	if (poem.Author != null)
+		Line.Current.Write($" ({poem.Author})", AnsiiStyle.Foreground(AnsiiColor.Magenta));
+
+	Line.Current.NewLine(2);
 }
 
 void WriteResult(IQuizResult result)

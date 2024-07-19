@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Markdig;
 using Markdig.Extensions.Yaml;
 using Markdig.Syntax;
@@ -45,7 +46,7 @@ namespace Poemem
 					return new Poem()
 					{
 						Title = Path.GetFileNameWithoutExtension(path).ToTitleCase(),
-						Author = "unspecified",
+						Author = null,
 						Lines = lines
 					};
 
@@ -55,12 +56,16 @@ namespace Poemem
 						.UseYamlFrontMatter()
 						.Build();
 					var doc = Markdown.Parse(text, pipeline);
-					var header = doc.Descendants<HeadingBlock>().SingleOrDefault()?.Inline?.FirstChild?.ToString();
 
 					return new Poem()
 					{
-						Title = header ?? Path.GetFileNameWithoutExtension(path).ToTitleCase(),
-						Author = doc.OfType<YamlFrontMatterBlock>().SingleOrDefault()?.Inline?.ToString() ?? "",
+						Title = doc.Descendants<HeadingBlock>()
+							.SingleOrDefault()?.Inline?.FirstChild?.ToString() 
+							?? Path.GetFileNameWithoutExtension(path).ToTitleCase(),
+						Author = doc.Descendants<YamlFrontMatterBlock>()
+							.SingleOrDefault()?.Lines.Lines
+							.Select(it => Regex.Match(it.ToString(), @"author: (.*)").Groups[1].Value)
+							.FirstOrDefault()?.Trim(),
 						Lines = doc.Descendants<ParagraphBlock>()
 							.SelectMany(p => p.Inline!.Descendants<LiteralInline>()
 							.Select(it => it.ToString()).Append(""))

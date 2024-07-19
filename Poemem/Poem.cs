@@ -4,6 +4,7 @@ namespace Poemem
 {
 	interface IPoem 
 	{
+		string? Author { get; }
 		string Title { get; }
 		string[][] Verses { get; }
 	}
@@ -19,7 +20,7 @@ namespace Poemem
 		}
 
 		[JsonPropertyName("author")]
-		public required string Author { get; init; }
+		public required string? Author { get; init; }
 
 		[JsonPropertyName("title")]
 		public required string Title { get; init; }
