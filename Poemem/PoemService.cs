@@ -1,6 +1,11 @@
-﻿using System.Diagnostics;
+﻿using System.Data.Common;
+using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Markdig;
+using Markdig.Extensions.Yaml;
+using Markdig.Syntax;
+using Markdig.Syntax.Inlines;
 using Poemem.Common;
 
 namespace Poemem
@@ -43,6 +48,25 @@ namespace Poemem
 						Author = "unspecified",
 						Lines = lines
 					};
+
+				case ".md":
+					var text = await File.ReadAllTextAsync(path);
+					var pipeline = new MarkdownPipelineBuilder()
+						.UseYamlFrontMatter()
+						.Build();
+					var doc = Markdown.Parse(text, pipeline);
+					var header = doc.Descendants<HeadingBlock>().SingleOrDefault()?.Inline?.FirstChild?.ToString();
+
+					return new Poem()
+					{
+						Title = header ?? Path.GetFileNameWithoutExtension(path).ToTitleCase(),
+						Author = doc.OfType<YamlFrontMatterBlock>().SingleOrDefault()?.Inline?.ToString() ?? "",
+						Lines = doc.Descendants<ParagraphBlock>()
+							.SelectMany(p => p.Inline!.Descendants<LiteralInline>()
+							.Select(it => it.ToString()).Append(""))
+							.SkipLast(1).ToArray()
+			};
+
 				default:
 					throw new Exception();
 			};			

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Poemem": {
+      "commandName": "Project",
+      "commandLineArgs": "quiz \"C:\\Users\\alain\\Google Drive\\Miscellanea\\Lyric\\itsy-bee.md\" -s=local"
+    }
+  }
+}
